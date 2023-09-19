@@ -49,13 +49,13 @@ window.onload = function () {
 
     // vertices coordinates and colors
     const vertices = [
-        0.0, 0.5, 1.0, 0.0, 1.0,
-        0.5, 0.0, 1.0, 1.0, 0.0,
-        -0.5, 0.0, 0.0, 1.0, 1.0,
-
-        0.0, -0.5, 1.0, 0.0, 1.0,
-        0.5, 0.0, 1.0, 1.0, 0.0,
-        -0.5, 0.0, 0.0, 1.0, 1.0,
+        0.0, 0.2, 0.3568627450980392, 0.6509803921568628, 0.807843137254902,
+        0.3, 0.75, 1.0, 1.0, 1.0,
+        0.6, 0.2, 1.0, 1.0, 1.0,
+        0.0, -0.75, 0.3568627450980392, 0.6509803921568628, 0.807843137254902,
+        -0.6, 0.2, 1.0, 1.0, 1.0,
+        -0.3, 0.75, 1.0, 1.0, 1.0,
+        0.3, 0.75, 1.0, 1.0, 1.0,
     ];
 
     // buffer of vertices
@@ -88,18 +88,19 @@ window.onload = function () {
         rotation += 0.03;
 
         const rotationMatrix = [
-            Math.cos(rotation), Math.sin(rotation), 0, 0,
-            Math.sin(rotation), -Math.cos(rotation), 0, 0,
+            1, 0, 0, 0,
+            0, 1, 0, 0,
             0, 0, 1, 0,
-            0, 0, 0, 1,
+            0, Math.sin(rotation) * 0.15, 0, 1,
         ];
 
         const matrixLocation = gl.getUniformLocation(program, "uModelMatrix");
 
         gl.uniformMatrix4fv(matrixLocation, false, rotationMatrix);
         gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, 7);
 
+        // Repeat animation
         window.requestAnimationFrame(animate);
     };
 
