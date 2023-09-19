@@ -20,20 +20,21 @@ window.onload = function () {
     // fragment shader program
     const fsSource = `
         precision mediump float;
-        varying vec3 v_color;
+        varying vec3 vColor;
         void main() {
-            gl_FragColor = vec4(v_color, 1.0);
+            gl_FragColor = vec4(vColor, 1.0);
         }
     `;
 
     // vertex shader program
     const vsSource = `
-        attribute vec2 a_position;
+        uniform mat4 uModelMatrix;
+        attribute vec4 a_position;
         attribute vec3 a_color;
-        varying vec3 v_color;
+        varying vec3 vColor;
         void main() {
-            gl_Position = vec4(a_position, 0.0, 1.0);
-            v_color = a_color;
+            gl_Position = uModelMatrix * a_position;
+            vColor = a_color;
         }
     `;
 
@@ -49,8 +50,12 @@ window.onload = function () {
     // vertices coordinates and colors
     const vertices = [
         0.0, 0.5, 1.0, 0.0, 1.0,
-        0.5, -0.25, 1.0, 1.0, 0.0,
-        -0.5, -0.25, 0.0, 1.0, 1.0,
+        0.5, 0.0, 1.0, 1.0, 0.0,
+        -0.5, 0.0, 0.0, 1.0, 1.0,
+
+        0.0, -0.5, 1.0, 0.0, 1.0,
+        0.5, 0.0, 1.0, 1.0, 0.0,
+        -0.5, 0.0, 0.0, 1.0, 1.0,
     ];
 
     // buffer of vertices
@@ -70,14 +75,37 @@ window.onload = function () {
     const positionAttributeLocation = gl.getAttribLocation(program, "a_position");
     const colorAttributeLocation = gl.getAttribLocation(program, "a_color");
 
-    // specified attributes
+    // Set the parameters for the specified attributes
     gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 20, 0);
     gl.vertexAttribPointer(colorAttributeLocation, 3, gl.FLOAT, false, 20, 8);
 
-    // enable the attributes
+    // Enable the attributes
     gl.enableVertexAttribArray(positionAttributeLocation);
     gl.enableVertexAttribArray(colorAttributeLocation);
 
-    // display triangle
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+    let rotation = 0;
+
+    const animate = function () {
+        rotation += 0.03;
+
+        const rotationMatrix = [
+            Math.cos(rotation), Math.sin(rotation), 0, 0,
+            Math.sin(rotation), -Math.cos(rotation), 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1,
+        ];
+
+        const matrixLocation = gl.getUniformLocation(program, "uModelMatrix");
+
+        gl.uniformMatrix4fv(matrixLocation, false, rotationMatrix);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        // Repeat animation
+        window.requestAnimationFrame(animate);
+    };
+
+    animate();
+
 }
