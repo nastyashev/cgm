@@ -1,36 +1,47 @@
-window.onload = function () {
+window.addEventListener("DOMContentLoaded", function () {
 
     const canvas = document.querySelector("#glcanvas");
     const gl = canvas.getContext("webgl");
 
     if (!gl) {
         console.log('Failed to get the rendering context for WebGL');
+        console.log(gl);
+        return;
+    }
+
+    if (!canvas) {
+        console.log("Не існує документа");
+        console.log(canvas);
         return;
     }
 
     let rect = canvas.getBoundingClientRect();
 
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.viewport(0, 0, rect.width, rect.height);
 
     // vertex shader program
     const vsSource = `
-        attribute vec4 a_Position;
+        attribute vec2 a_position;
+        attribute vec3 a_color;
+        varying vec3 v_color;
+
         void main()
         {
-            gl_Position = a_Position;
+            gl_Position = vec4(a_position, 0.0, 1.0);
             gl_PointSize = 5.0;
+            v_color = a_color;
         }
     `;
 
     // fragment shader program
     const fsSource = `
         precision mediump float;
-        uniform vec4 a_FragColor;
+        varying vec3 v_color;
+
         void main()
         {
-            gl_FragColor = a_FragColor;
+            gl_FragColor = vec4(v_color, 1.0);
         }
     `;
 
@@ -49,76 +60,176 @@ window.onload = function () {
     gl.linkProgram(program);
     gl.useProgram(program);
 
+    let buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+
+    let a_Position = gl.getAttribLocation(program, "a_position");
+    let a_Color = gl.getAttribLocation(program, "a_color");
+    gl.enableVertexAttribArray(a_Position);
+    gl.enableVertexAttribArray(a_Color);
+    gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 20, 0);
+    gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, 20, 8);
 
 
-    // // Get the storage location of a_Position
-    var a_Position = gl.getAttribLocation(program, 'a_Position');
-
-    let a_FragColor = gl.getUniformLocation(program, 'a_FragColor');
-
-    let color = [1.0, 1.0, 1.0, 1.0]
-    let pointColor = []
-
-    // Register function (event handler) to be called on a mouse press
-    canvas.onmousedown = function (ev) {
-        click(ev, gl, canvas, a_Position);
-    };
-
+    let color = [0.0, 0.0, 0.0, 1.0];
+    let mode_btn = "point";
+    let points_arr = [];
+    let triangles_arr = [];
+    let tempTriangle = [];
+    let circles_arr = [];
+    let radius_centre = false;
+    let x_radius;
+    let y_radius;
+    const numSegments = 100;
 
     // buttons
     let btn_clear = document.getElementById("btn_clear");
     let inp_color = document.getElementById("inp_color");
+    let btn_point = document.getElementById("btn_point");
+    let btn_triangle = document.getElementById("btn_triangle");
+    let btn_circle = document.getElementById("btn_circle");
+
+
+    btn_point.addEventListener("mouseup", function () {
+        mode_btn = "point";
+        btn_triangle.removeAttribute("disabled");
+        btn_circle.removeAttribute("disabled");
+        btn_point.setAttribute("disabled", "disabled");
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        points_arr = [];
+        triangles_arr = [];
+        circles_arr = [];
+        tempTriangle = [];
+        radius_centre = false;
+    });
 
     btn_clear.addEventListener("mouseup", function () {
         gl.clear(gl.COLOR_BUFFER_BIT);
-        g_points = [];
-        pointColor = [];
+        points_arr = [];
+        triangles_arr = [];
+        circles_arr = [];
+        tempTriangle = [];
+        radius_centre = false;
     });
-
 
     inp_color.addEventListener("input", function () {
         color = []
         var selectedColor = inp_color.value;
-        color.push(hexToRgb(selectedColor).r)
-        color.push(hexToRgb(selectedColor).g)
-        color.push(hexToRgb(selectedColor).b)
-        color.push(1)
+        color.push(hexToRgb(selectedColor).r);
+        color.push(hexToRgb(selectedColor).g);
+        color.push(hexToRgb(selectedColor).b);
+        color.push(1);
+    });
+
+    btn_triangle.addEventListener("mouseup", function () {
+        mode_btn = "triangle";
+        btn_point.removeAttribute("disabled");
+        btn_circle.removeAttribute("disabled");
+        btn_triangle.setAttribute("disabled", "disabled");
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        points_arr = [];
+        triangles_arr = [];
+        circles_arr = [];
+        tempTriangle = [];
+        radius_centre = false;
+    });
+
+    btn_circle.addEventListener("mouseup", function () {
+        mode_btn = "circle";
+        btn_point.removeAttribute("disabled");
+        btn_triangle.removeAttribute("disabled");
+        btn_circle.setAttribute("disabled", "disabled");
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        points_arr = [];
+        triangles_arr = [];
+        circles_arr = [];
+        tempTriangle = [];
+        radius_centre = false;
     });
 
 
-    var g_points = []; // The array for the position of a mouse press
-    function click(ev, gl, canvas, a_Position) {
-        var x = ev.clientX; // x coordinate of a mouse pointer
-        var y = ev.clientY; // y coordinate of a mouse pointer
-        var rect = ev.target.getBoundingClientRect();
+    canvas.addEventListener("mousedown", function (e) {
+        let x = e.clientX;
+        let y = e.clientY;
 
-        x = ((x - rect.left) - rect.width / 2) / (rect.width / 2);
-        y = (rect.height / 2 - (y - rect.top)) / (rect.height / 2);
-        // Store the coordinates to g_points array
-        g_points.push(x);
-        g_points.push(y);
+        let x_width = ((x - rect.left) - canvas.width / 2) / (canvas.width / 2);
+        let y_width = (canvas.height / 2 - (y - rect.top)) / (canvas.height / 2);
 
-        pointColor.push(color[0])
-        pointColor.push(color[1])
-        pointColor.push(color[2])
-        pointColor.push(color[3])
+        if (mode_btn == "point") {
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            points_arr.push(x_width, y_width, color[0], color[1], color[2]);
 
-        // Clear <canvas>
-        gl.clear(gl.COLOR_BUFFER_BIT);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(points_arr), gl.STATIC_DRAW);
+            gl.drawArrays(gl.POINTS, 0, points_arr.length / 5);
 
-        var len = g_points.length;
-        for (var i = 0; i < len; i += 2) {
-            // Pass the position of a point to a_Position variable
-            gl.vertexAttrib3f(a_Position, g_points[i], g_points[i + 1], 0.0);
-
-            gl.uniform4fv(a_FragColor, [pointColor[i * 2], pointColor[i * 2 + 1], pointColor[i * 2 + 2], pointColor[i * 2 + 3]]);
-
-            // Draw
-            gl.drawArrays(gl.POINTS, 0, 1);
+            return;
         }
-    }
 
-}
+        if (mode_btn == "triangle") {
+            tempTriangle.push(x_width, y_width, color[0], color[1], color[2]);
+
+            if (tempTriangle.length >= 15) {
+                for (let i = 0; i < tempTriangle.length; i++) {
+                    triangles_arr.push(tempTriangle[i]);
+                }
+                tempTriangle = []
+            }
+
+            if (tempTriangle.length > 0) {
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tempTriangle), gl.STATIC_DRAW);
+                gl.drawArrays(gl.POINTS, 0, tempTriangle.length / 5);
+            }
+
+            if (triangles_arr.length > 0) {
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangles_arr), gl.STATIC_DRAW);
+                gl.drawArrays(gl.TRIANGLES, 0, triangles_arr.length / 5);
+            }
+
+            return;
+        }
+
+        if (mode_btn == "circle") {
+            radius_centre = !radius_centre;
+
+            if (radius_centre) {
+                x_radius = x_width;
+                y_radius = y_width;
+
+                for (let i = 0; i < circles_arr.length; i++) {
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(circles_arr[i]), gl.STATIC_DRAW);
+                    gl.drawArrays(gl.TRIANGLE_FAN, 0, numSegments + 1);
+                }
+
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([x_radius, y_radius, color[0], color[1], color[2]]), gl.STATIC_DRAW);
+                gl.drawArrays(gl.POINTS, 0, 1);
+            }
+
+            let radius = Math.sqrt(Math.pow(x_radius - x_width, 2) + Math.pow(y_radius - y_width, 2));
+            let vertices = [];
+
+            for (let i = 0; i <= numSegments; i++) {
+                let theta = (i / numSegments) * 2 * Math.PI;
+                let x = radius * Math.cos(theta) + x_radius;
+                let y = radius * Math.sin(theta) + y_radius;
+
+                vertices.push(x, y, color[0], color[1], color[2]);
+            }
+
+            circles_arr.push(vertices);
+
+            for (let i = 0; i < circles_arr.length; i++) {
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(circles_arr[i]), gl.STATIC_DRAW);
+                gl.drawArrays(gl.TRIANGLE_FAN, 0, numSegments + 1);
+            }
+
+            return;
+        }
+
+        else {
+            console.log("ERROR: Unknown drawing type")
+        }
+    });
+});
 
 
 function hexToRgb(hex) {
@@ -129,8 +240,3 @@ function hexToRgb(hex) {
         b: parseInt(result[3], 16) / 255
     } : null;
 }
-
-
-
-
-
