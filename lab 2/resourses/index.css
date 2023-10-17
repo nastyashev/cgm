@@ -2,8 +2,102 @@
     box-sizing: border-box;
 }
 
+body {
+    display: grid;
+    grid-template-columns: min-content;
+    background-color: DarkGray;
+}
+
 #glcanvas {
     width: 800px;
     height: 800px;
     border: 2px solid black;
+    grid-column: 1;
+    background-color: white;
+}
+
+#buttons {
+    margin-left: 20px;
+    height: fit-content;
+    grid-column: 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    width: 300px;
+}
+
+#inp_color {
+    grid-column: 1 / span 3;
+    width: auto;
+    height: 50px;
+    margin-bottom: 20px;
+    background-color: LightGrey;
+    border: 1px solid black;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+
+#btn_clear {
+    grid-column: 1 / span 3;
+    margin-top: 20px;
+    padding: 5px;
+    color: rgb(184, 41, 41);
+    background-color: LightGrey;
+    border: 1px solid rgb(184, 41, 41);
+    border-radius: 3px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+#btn_clear:hover {
+    background-color: rgb(184, 41, 41);
+    color: white;
+}
+
+
+#btn_point {
+    margin-right: 5px;
+    padding: 5px;
+    background-color: LightGrey;
+    border: 1px solid black;
+    border-radius: 3px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+#btn_point:hover {
+    background-color: dimgrey;
+    color: white;
+}
+
+
+#btn_triangle {
+    margin-inline: 5px;
+    padding: 5px;
+    background-color: LightGrey;
+    border: 1px solid black;
+    border-radius: 3px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+#btn_triangle:hover {
+    background-color: dimgrey;
+    color: white;
+}
+
+
+#btn_circle {
+    margin-left: 5px;
+    padding: 5px;
+    background-color: LightGrey;
+    border: 1px solid black;
+    border-radius: 3px;
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+
+#btn_circle:hover {
+    background-color: dimgrey;
+    color: white;
 }
