@@ -10,7 +10,7 @@ window.addEventListener("DOMContentLoaded", function () {
     }
 
     if (!canvas) {
-        console.log("Не існує документа");
+        console.log("Document doesn`t exist");
         console.log(canvas);
         return;
     }
