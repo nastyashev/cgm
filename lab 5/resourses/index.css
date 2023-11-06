@@ -8,3 +8,16 @@
     border: 2px solid black;
     background-color: white;
 }
+
+#buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    width: 500px;
+}
+
+button {
+    margin-left: 20px;
+    margin-right: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}

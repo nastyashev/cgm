@@ -37,7 +37,6 @@ window.addEventListener("DOMContentLoaded", function () {
     }
     `;
 
-    // fragment shader program
     const fsSource = `
     precision mediump float;
 
@@ -87,18 +86,78 @@ window.addEventListener("DOMContentLoaded", function () {
     let uLight = gl.getUniformLocation(program, "u_light");
 
     let cameraInfo = {
-        position: [200, 100, 200],
-        target: [0, 35, 0],
+        position: [250, 100, 100],
+        target: [80, 30, 0],
         up: [0, 1, 0],
     };
 
     let lightInfo = {
-        x: 30,
-        y: 50,
-        z: 90,
+        x: 0.3,
+        y: 0.6,
+        z: 0.9,
     };
 
     drawScene();
+
+    document.getElementById('increaseX').addEventListener('mouseup', function () {
+        if (lightInfo.x < 1) {
+            lightInfo.x += 0.1;
+            console.log('Increased X: ', lightInfo.x);
+            drawScene();
+        } else {
+            console.log('Cannot increase, lightInfo.x is already at maximum');
+        }
+    });
+
+    document.getElementById('decreaseX').addEventListener('mouseup', function () {
+        if (lightInfo.x >= 0) {
+            lightInfo.x -= 0.1;
+            console.log('Decreased X: ', lightInfo.x);
+            drawScene();
+        } else {
+            console.log('Cannot decrease, lightInfo.x is already at minimum');
+        }
+    });
+
+    document.getElementById('increaseY').addEventListener('mouseup', function () {
+        if (lightInfo.y < 1) {
+            lightInfo.y += 0.1;
+            console.log('Increased Y: ', lightInfo.y);
+            drawScene();
+        } else {
+            console.log('Cannot increase, lightInfo.y is already at maximum');
+        }
+    });
+
+    document.getElementById('decreaseY').addEventListener('mouseup', function () {
+        if (lightInfo.y >= 0) {
+            lightInfo.y -= 0.1;
+            console.log('Decreased Y: ', lightInfo.y);
+            drawScene();
+        } else {
+            console.log('Cannot decrease, lightInfo.y is already at minimum');
+        }
+    });
+
+    document.getElementById('increaseZ').addEventListener('mouseup', function () {
+        if (lightInfo.z < 1) {
+            lightInfo.z += 0.1;
+            console.log('Increased Z: ', lightInfo.z);
+            drawScene();
+        } else {
+            console.log('Cannot increase, lightInfo.z is already at maximum');
+        }
+    });
+
+    document.getElementById('decreaseZ').addEventListener('mouseup', function () {
+        if (lightInfo.z >= 0) {
+            lightInfo.z -= 0.1;
+            drawScene();
+            console.log('Decreased Z: ', lightInfo.z);
+        } else {
+            console.log('Cannot decrease, lightInfo.z is already at minimum');
+        }
+    });
 
     function drawScene() {
         gl.useProgram(program);
@@ -173,49 +232,25 @@ function setGeometry(gl, posBuffer) {
 
 function setColor(gl, colBuffer) {
     gl.bindBuffer(gl.ARRAY_BUFFER, colBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array([
-        255, 0, 0,
-        255, 0, 0,
-        255, 0, 0,
-        255, 0, 0,
-        255, 0, 0,
-        255, 0, 0,
+    gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(generateRandomColorsArray()), gl.STATIC_DRAW)
+}
 
-        0, 255, 0,
-        0, 255, 0,
-        0, 255, 0,
-        0, 255, 0,
-        0, 255, 0,
-        0, 255, 0,
-
-        0, 0, 255,
-        0, 0, 255,
-        0, 0, 255,
-        0, 0, 255,
-        0, 0, 255,
-        0, 0, 255,
-
-        0, 255, 255,
-        0, 255, 255,
-        0, 255, 255,
-        0, 255, 255,
-        0, 255, 255,
-        0, 255, 255,
-
-        255, 0, 255,
-        255, 0, 255,
-        255, 0, 255,
-        255, 0, 255,
-        255, 0, 255,
-        255, 0, 255,
-
-        255, 255, 0,
-        255, 255, 0,
-        255, 255, 0,
-        255, 255, 0,
-        255, 255, 0,
-        255, 255, 0,
-    ]), gl.STATIC_DRAW)
+function generateRandomColorsArray() {
+    let arr = [];
+    let rand = {
+        r: 0,
+        g: 0,
+        b: 0,
+    };
+    for (let i = 0; i < 6; i++) {
+        rand.r = Math.floor(Math.random() * 255);
+        rand.g = Math.floor(Math.random() * 255);
+        rand.b = Math.floor(Math.random() * 255);
+        for (let k = 0; k < 6; k++) {
+            arr.push(rand.r, rand.g, rand.b)
+        }
+    }
+    return arr;
 }
 
 function setNormals(gl, normalBuffer) {
