@@ -1,23 +1,29 @@
 window.addEventListener("DOMContentLoaded", function () {
+    // Get the canvas element
     const canvas = document.querySelector("#glcanvas");
+    // Get the WebGL context from the canvas
     const gl = canvas.getContext("webgl");
 
+    // If WebGL context is not available, log an error and return
     if (!gl) {
         console.log('Failed to get the rendering context for WebGL');
         console.log(gl);
         return;
     }
 
+    // If canvas is not available, log an error and return
     if (!canvas) {
         console.log("Document doesn`t exist");
         console.log(canvas);
         return;
     }
 
+    // Set the viewport and clear the buffer
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.DEPTH_TEST);
 
+    // Vertex shader program
     let vsSource = `
     attribute vec4 a_position;
     attribute vec4 a_color;
@@ -51,6 +57,7 @@ window.addEventListener("DOMContentLoaded", function () {
     }
     `;
 
+    // Fragment shader program
     const fsSource = `
     precision mediump float;
 
@@ -82,6 +89,7 @@ window.addEventListener("DOMContentLoaded", function () {
     }
     `;
 
+    // Initialize a shader program
     const vertexShader = gl.createShader(gl.VERTEX_SHADER);
     gl.shaderSource(vertexShader, vsSource);
     gl.compileShader(vertexShader);
@@ -97,15 +105,15 @@ window.addEventListener("DOMContentLoaded", function () {
     gl.enable(gl.DEPTH_TEST);
     gl.useProgram(program);
 
+    // Create buffers
     let posBuffer = gl.createBuffer();
     setGeometry(gl, posBuffer);
-
     let colBuffer = gl.createBuffer();
     setColor(gl, colBuffer);
-
     let normalBuffer = gl.createBuffer();
     setNormals(gl, normalBuffer);
 
+    // Get the attribute and uniform locations
     let aPosition = gl.getAttribLocation(program, "a_position");
     let aNormal = gl.getAttribLocation(program, "a_normal");
     let aColor = gl.getAttribLocation(program, "a_color");
@@ -116,17 +124,20 @@ window.addEventListener("DOMContentLoaded", function () {
     let uViewWorldPosition = gl.getUniformLocation(program, "u_viewWorldPosition");
     let uShininess = gl.getUniformLocation(program, "u_shininess");
 
+    // Set the camera position
     let cameraInfo = {
         position: [250, 100, 100],
         target: [0, 0, 0],
         up: [0, 1, 0],
     };
 
+    // Set the light position
     let lightInfo = {
         position: [100, 90, -80],
         shininess: 2,
     };
 
+    // Draw the scene
     drawScene();
 
     function drawScene() {
@@ -155,6 +166,11 @@ window.addEventListener("DOMContentLoaded", function () {
 
 });
 
+/**
+ * Sets the geometry to be drawn
+ * @param {Object} gl - WebGL context
+ * @param {Object} posBuffer - Buffer for the position
+ */
 function setGeometry(gl, posBuffer) {
     gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
@@ -202,11 +218,20 @@ function setGeometry(gl, posBuffer) {
     ]), gl.STATIC_DRAW)
 }
 
+/**
+ * Sets the color to be drawn
+ * @param {Object} gl - WebGL context
+ * @param {Object} colBuffer - Buffer for the color
+ */
 function setColor(gl, colBuffer) {
     gl.bindBuffer(gl.ARRAY_BUFFER, colBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(generateRandomColorsArray()), gl.STATIC_DRAW)
 }
 
+/**
+ * Generates random colors array
+ * @returns {Array} - Array of random colors
+ */
 function generateRandomColorsArray() {
     let arr = [];
     let rand = {
@@ -225,6 +250,11 @@ function generateRandomColorsArray() {
     return arr;
 }
 
+/**
+ * Sets the normals to be drawn
+ * @param {Object} gl - WebGL context
+ * @param {Object} normalBuffer - Buffer for the normals
+ */
 function setNormals(gl, normalBuffer) {
     gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
@@ -272,6 +302,13 @@ function setNormals(gl, normalBuffer) {
     ]), gl.STATIC_DRAW)
 }
 
+/**
+ * Sets the camera
+ * @param {Array} cameraPosition - Camera position
+ * @param {Array} target - Target position
+ * @param {Array} up - Up vector
+ * @returns {Array} - Camera matrix
+ */
 function setCamera(cameraPosition, target, up) {
     let zAxis = normalize(sub(cameraPosition, target));
     let xAxis = normalize(cross(up, zAxis));
@@ -295,6 +332,11 @@ function setCamera(cameraPosition, target, up) {
     return result;
 }
 
+/**
+ * Normalizes the vector
+ * @param {Array} v - Vector
+ * @returns {Array} - Normalized vector
+ */
 function normalize(v) {
     let length = Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
     if (length == 0) {
@@ -307,6 +349,12 @@ function normalize(v) {
     return result;
 }
 
+/**
+ * Subtracts two vectors
+ * @param {Array} v1 - Vector 1
+ * @param {Array} v2 - Vector 2
+ * @returns {Array} - Subtracted vector
+ */
 function sub(v1, v2) {
     let result = new Array();
     result.push(v1[0] - v2[0]);
@@ -315,6 +363,12 @@ function sub(v1, v2) {
     return result;
 }
 
+/**
+ * Calculates the cross product of two vectors
+ * @param {Array} v1 - Vector 1
+ * @param {Array} v2 - Vector 2
+ * @returns {Array} - Cross product
+ */
 function cross(v1, v2) {
     let result = new Array();
     result.push(v1[1] * v2[2] - v1[2] * v2[1]);
@@ -323,10 +377,24 @@ function cross(v1, v2) {
     return result;
 }
 
+/**
+ * Converts degrees to radians
+ * @param {Number} d - Degrees
+ * @returns {Number} - Radians
+ */
 function degToRad(d) {
     return d * Math.PI / 180;
 }
 
+/**
+ * Creates a perspective matrix
+ * @param {Number} width - Width
+ * @param {Number} height - Height
+ * @param {Number} near - Near
+ * @param {Number} far - Far
+ * @param {Number} deg - Degrees
+ * @returns {Array} - Perspective matrix
+ */
 function perspective(width, height, near = 1, far = 1000, deg = 60) {
     let f = Math.tan(Math.PI * 0.5 - 0.5 * degToRad(deg));
     let rangeInv = 1.0 / (near - far);
@@ -339,6 +407,11 @@ function perspective(width, height, near = 1, far = 1000, deg = 60) {
     ];
 }
 
+/**
+ * Calculates the inverse matrix
+ * @param {Array} matrix - Matrix
+ * @returns {Array} - Inverse matrix
+ */
 function invers(matrix) {
     let result = new Array();
     let det = matrix[0] * matrix[5] * matrix[10] * matrix[15] + matrix[0] * matrix[6] * matrix[11] * matrix[13] + matrix[0] * matrix[7] * matrix[9] * matrix[14] +
