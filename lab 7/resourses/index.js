@@ -20,6 +20,7 @@ window.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
+    // If extension is not available, log an error and return
     if (!ext) {
         console.log("Extension doesn`t exist");
         console.log(ext);
@@ -69,45 +70,6 @@ window.addEventListener("DOMContentLoaded", function () {
         shine: 100,
         bias: -0.005,
     };
-
-    function drawScene(programInfo, uniformSetter, atributeSetter, drawSeting) {
-        gl.useProgram(programInfo.program);
-
-        for (let i = 0; i < uniformSetter.length; i++) {
-            let uniform = uniformSetter[i];
-            switch (uniform.type) {
-                case "mat4":
-                    gl.uniformMatrix4fv(uniform.location, false, uniform.value);
-                    break;
-                case "vec3":
-                    gl.uniform3fv(uniform.location, uniform.value);
-                    break;
-                case "vec4":
-                    gl.uniform4fv(uniform.location, uniform.value);
-                    break;
-                case "float":
-                    gl.uniform1f(uniform.location, uniform.value);
-                    break;
-                case "sampler2D":
-                    gl.uniform1i(uniform.location, uniform.value);
-                    break;
-                default:
-                    console.log("Uniform type error");
-                    console.log(uniform);
-                    break;
-            }
-        }
-
-        for (let i = 0; i < atributeSetter.length; i++) {
-            let atribute = atributeSetter[i];
-            gl.bindBuffer(gl.ARRAY_BUFFER, atribute.buffer);
-            gl.enableVertexAttribArray(atribute.location);
-            gl.vertexAttribPointer(atribute.location, atribute.size, atribute.type, atribute.normalize, atribute.stride, atribute.offset);
-        }
-
-        gl.drawArrays(drawSeting.mode, drawSeting.first, drawSeting.count);
-    }
-
     
     // Enable depth test
     gl.enable(gl.DEPTH_TEST);
@@ -118,6 +80,7 @@ window.addEventListener("DOMContentLoaded", function () {
     // Clear the color buffer with specified clear color
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    // Draw the shadow
     drawScene(
         shadowInfo,
         [
@@ -152,13 +115,15 @@ window.addEventListener("DOMContentLoaded", function () {
             mode: gl.TRIANGLES,
             first: 0,
             count: 3 * 2 * 6 + 3 * 2 * 6 + 3 * 2 * 6,
-        }
+        },
+        gl
     );
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    // Draw the scene
     drawScene(
         sceneInfo,
         [
@@ -263,14 +228,66 @@ window.addEventListener("DOMContentLoaded", function () {
             mode: gl.TRIANGLES,
             first: 0,
             count: 3 * 2 * 6 + 3 * 2 * 6 + 3 * 2 * 6,
-        }
+        },
+        gl
     );
 
+    // set timeout
     this.setTimeout(() => {
         this.location.reload();
     }, 500);
 });
 
+/**
+ * Draws the scene
+ * @param {Object} programInfo - Program info
+ * @param {Array} uniformSetter - Uniform setter
+ * @param {Array} atributeSetter - Atribute setter
+ * @param {Object} drawSeting - Draw seting
+ */
+function drawScene(programInfo, uniformSetter, atributeSetter, drawSeting, gl) {
+    gl.useProgram(programInfo.program);
+
+    for (let i = 0; i < uniformSetter.length; i++) {
+        let uniform = uniformSetter[i];
+        switch (uniform.type) {
+            case "mat4":
+                gl.uniformMatrix4fv(uniform.location, false, uniform.value);
+                break;
+            case "vec3":
+                gl.uniform3fv(uniform.location, uniform.value);
+                break;
+            case "vec4":
+                gl.uniform4fv(uniform.location, uniform.value);
+                break;
+            case "float":
+                gl.uniform1f(uniform.location, uniform.value);
+                break;
+            case "sampler2D":
+                gl.uniform1i(uniform.location, uniform.value);
+                break;
+            default:
+                console.log("Uniform type error");
+                console.log(uniform);
+                break;
+        }
+    }
+
+    for (let i = 0; i < atributeSetter.length; i++) {
+        let atribute = atributeSetter[i];
+        gl.bindBuffer(gl.ARRAY_BUFFER, atribute.buffer);
+        gl.enableVertexAttribArray(atribute.location);
+        gl.vertexAttribPointer(atribute.location, atribute.size, atribute.type, atribute.normalize, atribute.stride, atribute.offset);
+    }
+
+    gl.drawArrays(drawSeting.mode, drawSeting.first, drawSeting.count);
+}
+
+/**
+ * initializes the scene
+ * @param {Object} gl - WebGL context
+ * @returns {Object} - Program info
+*/
 function initScene(gl) {
     // Vertex shader program
     let vsSource = `
@@ -397,6 +414,11 @@ function initScene(gl) {
     };
 }
 
+/**
+ * Initializes the shadow
+ * @param {Object} gl - WebGL context
+ * @returns {Object} - Program info
+ */
 function initShadow(gl) {
     // Vertex shader program
     let vsSource = `
@@ -968,6 +990,12 @@ function invers(matrix) {
     return result;
 }
 
+/**
+ * Multiplies two matrices
+ * @param {Array} a - Matrix 1
+ * @param {Array} b - Matrix 2
+ * @returns {Array} - Multiplied matrix
+*/
 function multiply(a, b) {
     return [
         b[0] * a[0] + b[1] * a[4] + b[2] * a[8] + b[3] * a[12],
@@ -989,6 +1017,13 @@ function multiply(a, b) {
     ];
 }
 
+/**
+ * Translates the matrix
+ * @param {Number} tx - X
+ * @param {Number} ty - Y
+ * @param {Number} tz - Z
+ * @returns {Array} - Translated matrix
+ */
 function translate(tx, ty, tz) {
     return [
         1, 0, 0, 0,
@@ -998,6 +1033,13 @@ function translate(tx, ty, tz) {
     ];
 }
 
+/**
+ * Scale the matrix
+ * @param {Number} sx - X
+ * @param {Number} sy - Y
+ * @param {Number} sz - Z
+ * @returns {Array} - Scaled matrix
+*/
 function scale(sx, sy, sz) {
     return [
         sx, 0, 0, 0,
