@@ -27,7 +27,7 @@ window.addEventListener("DOMContentLoaded", function () {
         return;
     }
 
-    // Створення програми
+    // Create program
     const sceneInfo = initScene(gl);
     const shadowInfo = initShadow(gl);
 
@@ -39,7 +39,7 @@ window.addEventListener("DOMContentLoaded", function () {
     let normalBuffer = gl.createBuffer();
     setNormals(gl, normalBuffer);
 
-    // Створюємо текстуру
+    // Create texture
     const depthTexture = gl.createTexture();
     const depthTextureSize = 512;
     gl.bindTexture(gl.TEXTURE_2D, depthTexture);
@@ -49,7 +49,7 @@ window.addEventListener("DOMContentLoaded", function () {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-    // Створюємо буфер для текстури
+    // Create framebuffer
     const depthFramebuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depthTexture, 0);
